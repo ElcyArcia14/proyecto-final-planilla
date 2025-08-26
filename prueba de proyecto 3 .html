@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Planilla Panamá</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #fce3d3, #fdebd3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff8f0;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 800px;
+      text-align: center;
+    }
+    h1 {
+      color: #7b3e19;
+    }
+    .tab {
+      display: none;
+    }
+    .tab.active {
+      display: block;
+    }
+    nav button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #f4a261;
+      color: white;
+      font-weight: bold;
+    }
+    nav button:hover {
+      background-color: #e76f51;
+    }
+    input, select {
+      margin: 5px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 80%;
+    }
+    .result, table {
+      margin-top: 15px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: center;
+    }
+    .btn-whatsapp, .btn-download {
+      margin-top: 15px;
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-download {
+      background: #0077cc;
+    }
+    .btn-whatsapp:hover { background: #1ebe57; }
+    .btn-download:hover { background: #005fa3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Planilla Panamá</h1>
+    <nav>
+      <button onclick="showTab('salario')">Salario</button>
+      <button onclick="showTab('decimo')">Décimo</button>
+      <button onclick="showTab('vacaciones')">Vacaciones</button>
+      <button onclick="showTab('planilla')">Planilla</button>
+    </nav>
+
+    <div id="salario" class="tab active">
+      <h2>Salario</h2>
+      <input type="text" id="nombreEmpleado" placeholder="Nombre del empleado"><br>
+      <input type="number" id="salarioBase" placeholder="Salario mensual"><br>
+      <input type="number" id="horasExtra" placeholder="Horas extra (opcional)"><br>
+      <input type="number" id="bonificacion" placeholder="Bonificación (opcional)"><br>
+      <label><input type="checkbox" id="aplicarISR"> Aplicar ISR</label><br>
+      <button onclick="calcularSalario()">Calcular</button>
+      <div class="result" id="resultadoSalario"></div>
+    </div>
+
+    <div id="decimo" class="tab">
+      <h2>Décimo Tercer Mes</h2>
+      <input type="number" id="salarioDecimo" placeholder="Salario mensual"><br>
+      <button onclick="calcularDecimo()">Calcular Décimo</button>
+      <div class="result" id="resultadoDecimo"></div>
+    </div>
+
+    <div id="vacaciones" class="tab">
+      <h2>Vacaciones</h2>
+      <input type="number" id="salarioVacaciones" placeholder="Salario mensual"><br>
+      <input type="number" id="diasVacaciones" placeholder="Días de vacaciones"><br>
+      <button onclick="calcularVacaciones()">Calcular Vacaciones</button>
+      <div class="result" id="resultadoVacaciones"></div>
+    </div>
+
+    <div id="planilla" class="tab">
+      <h2>Planilla</h2>
+      <table id="tablaPlanilla">
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Salario Neto</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button onclick="exportarCSV()">Exportar CSV</button>
+    </div>
+
+    <button class="btn-whatsapp" onclick="compartirWhatsApp()">Compartir por WhatsApp</button>
+    <button class="btn-download" onclick="descargarPrograma()">Descargar Programa</button>
+  </div>
+
+  <script>
+    let ultimoResultado = {}; // Guardar último cálculo
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function calcularSalario() {
+      let nombre = document.getElementById("nombreEmpleado").value;
+      let salario = parseFloat(document.getElementById("salarioBase").value) || 0;
+      let horasExtra = parseFloat(document.getElementById("horasExtra").value) || 0;
+      let bonificacion = parseFloat(document.getElementById("bonificacion").value) || 0;
+      let aplicarISR = document.getElementById("aplicarISR").checked;
+
+      let bruto = salario + horasExtra + bonificacion;
+      let ss = bruto * 0.0975;
+      let se = bruto * 0.0125;
+      let isr = aplicarISR ? bruto * 0.10 : 0;
+      let neto = bruto - (ss + se + isr);
+
+      document.getElementById("resultadoSalario").innerHTML = `
+        <p><strong>${nombre}</strong></p>
+        <p>Salario Bruto: $${bruto.toFixed(2)}</p>
+        <p>Seguro Social: $${ss.toFixed(2)}</p>
+        <p>Seguro Educativo: $${se.toFixed(2)}</p>
+        <p>ISR: $${isr.toFixed(2)}</p>
+        <p><strong>Salario Neto: $${neto.toFixed(2)}</strong></p>
+        <button onclick="agregarPlanilla('${nombre}', ${neto.toFixed(2)})">Agregar a Planilla</button>
+      `;
+
+      ultimoResultado = { nombre, neto }; // Guardar para WhatsApp
+    }
+
+    function calcularDecimo() {
+      let salario = parseFloat(document.getElementById("salarioDecimo").value) || 0;
+      let decimoBruto = salario / 3;
+      let descuento = decimoBruto * 0.0725;
+      let neto = decimoBruto - descuento;
+
+      document.getElementById("resultadoDecimo").innerHTML = `
+        <p>Décimo Bruto: $${decimoBruto.toFixed(2)}</p>
+        <p>Descuento 7.25%: $${descuento.toFixed(2)}</p>
+        <p><strong>Décimo Neto: $${neto.toFixed(2)}</strong></p>
+      `;
+    }
+
+    function calcularVacaciones() {
+      let salario = parseFloat(document.getElementById("salarioVacaciones").value) || 0;
+      let dias = parseFloat(document.getElementById("diasVacaciones").value) || 0;
+      let pagoBruto = (salario / 30) * dias;
+      let ss = pagoBruto * 0.0975;
+      let se = pagoBruto * 0.0125;
+      let neto = pagoBruto - (ss + se);
+
+      document.getElementById("resultadoVacaciones").innerHTML = `
+        <p>Vacaciones Bruto: $${pagoBruto.toFixed(2)}</p>
+        <p>Seguro Social: $${ss.toFixed(2)}</p>
+        <p>Seguro Educativo: $${se.toFixed(2)}</p>
+        <p><strong>Vacaciones Neto: $${neto.toFixed(2)}</strong></p>
+      `;
+    }
+
+    function agregarPlanilla(nombre, neto) {
+      let tabla = document.getElementById("tablaPlanilla").querySelector("tbody");
+      let fila = document.createElement("tr");
+      fila.innerHTML = `<td>${nombre}</td><td>$${neto.toFixed(2)}</td>`;
+      tabla.appendChild(fila);
+    }
+
+    function exportarCSV() {
+      let filas = [["Empleado", "Salario Neto"]];
+      document.querySelectorAll("#tablaPlanilla tbody tr").forEach(tr => {
+        let cols = tr.querySelectorAll("td");
+        filas.push([cols[0].innerText, cols[1].innerText]);
+      });
+      let csvContent = filas.map(e => e.join(",")).join("\n");
+      let blob = new Blob([csvContent], { type: 'text/csv' });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "planilla.csv";
+      link.click();
+    }
+
+    function compartirWhatsApp() {
+      if (!ultimoResultado.nombre || !ultimoResultado.neto) {
+        alert("Primero realiza un cálculo de salario para compartirlo.");
+        return;
+      }
+      const link = "https://drive.google.com/file/d/1HZdLDEPL7klG9OIr_vX3mhAEcvwg33T5/view?usp=sharing";
+      const mensaje = `Empleado: ${ultimoResultado.nombre}\nSalario Neto: $${ultimoResultado.neto.toFixed(2)}\nPrograma: ${link}`;
+      const url = "https://wa.me/?text=" + encodeURIComponent(mensaje);
+      window.open(url, "_blank");
+    }
+
+    function descargarPrograma() {
+      let contenido = document.documentElement.outerHTML;
+      let blob = new Blob([contenido], { type: "text/html" });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "planilla.html";
+      link.click();
+    }
+  </script>
+</body>
+</html>
